@@ -23,9 +23,9 @@ struct ContentView: View {
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 20)
-        .padding(.top, 38)
+        .padding(.top, 16)
         .padding(.bottom, 20)
-        .frame(minWidth: 720, minHeight: 560)
+        .frame(minWidth: 720, minHeight: 520)
         .safeAreaInset(edge: .bottom) { statusBar }
         .toolbar { ToolbarItem(placement: .primaryAction) { moreMenu } }
         .task { refreshDetection() }
@@ -50,13 +50,10 @@ struct ContentView: View {
     // MARK: - Header
 
     private var header: some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Cloudflare WARP Configurator", bundle: .module).font(.title).bold()
-                Text("Edit the organisations and click install — the rest happens automatically.", bundle: .module)
-                    .foregroundStyle(.secondary)
-                    .font(.callout)
-            }
+        HStack(alignment: .center) {
+            Text("Edit the organisations and click install — the rest happens automatically.", bundle: .module)
+                .foregroundStyle(.secondary)
+                .font(.callout)
             Spacer()
             installBadge
         }
