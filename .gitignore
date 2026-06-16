@@ -1,0 +1,13 @@
+.build/
+.swiftpm/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+
+WarpConfigurator.app/
+*.zip
+*.dmg
+
+.DS_Store
+*.swp
+*~

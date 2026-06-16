@@ -1,0 +1,147 @@
+# Release workflow voor WarpConfigurator.
+#
+# Trigger: push een tag `vX.Y.Z` (bv. `git tag v1.0.0 && git push --tags`).
+#
+# Vereiste GitHub secrets (Repo Settings → Secrets and variables → Actions):
+#   APPLE_DEVELOPER_ID_CERT_P12          base64 van je .p12 export (private key + cert)
+#                                          export uit Keychain: rechtermuisklik op
+#                                          "Developer ID Application…" → Export Items
+#                                          → .p12. Daarna: `base64 -i cert.p12 | pbcopy`
+#   APPLE_DEVELOPER_ID_CERT_PASSWORD     wachtwoord van de .p12
+#   KEYCHAIN_PASSWORD                    willekeurig (alleen voor CI-keychain)
+#   APPLE_ID                             vincent@boots.email
+#   APPLE_TEAM_ID                        HB65PP77HT
+#   APPLE_APP_SPECIFIC_PASSWORD          app-specific password (account.apple.com)
+#
+# Optioneel voor Homebrew tap auto-update:
+#   TAP_REPO_TOKEN                       PAT met `repo` scope op je tap-repo
+# Optionele variable (Settings → Variables):
+#   TAP_REPO                             "OWNER/homebrew-tap" (default: deze owner + /homebrew-tap)
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versie (zonder leading v), bv. 1.0.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bepaal versie
+        id: ver
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            V="${{ inputs.version }}"
+          else
+            V="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$V" >> $GITHUB_OUTPUT
+
+      - name: Importeer Developer ID certificaat in tijdelijke keychain
+        env:
+          CERT_P12_BASE64: ${{ secrets.APPLE_DEVELOPER_ID_CERT_P12 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_DEVELOPER_ID_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain"
+          CERT_PATH="$RUNNER_TEMP/cert.p12"
+          echo "$CERT_P12_BASE64" | base64 --decode > "$CERT_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | sed 's/[\" ]//g')
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+          rm -f "$CERT_PATH"
+
+      - name: Build + sign + notarize
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          ARCHS: universal
+          NOTARIZE: '1'
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          chmod +x build-app.sh
+          ./build-app.sh
+
+      - name: Pak de app in
+        id: pkg
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          ZIP="WarpConfigurator-${VERSION}.zip"
+          /usr/bin/ditto -c -k --keepParent WarpConfigurator.app "$ZIP"
+          SHA=$(shasum -a 256 "$ZIP" | awk '{print $1}')
+          echo "zip=$ZIP" >> $GITHUB_OUTPUT
+          echo "sha=$SHA" >> $GITHUB_OUTPUT
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.version }}
+          files: ${{ steps.pkg.outputs.zip }}
+          generate_release_notes: true
+
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_REPO_TOKEN }}
+          TAP_REPO_OVERRIDE: ${{ vars.TAP_REPO }}
+          VERSION: ${{ steps.ver.outputs.version }}
+          SHA: ${{ steps.pkg.outputs.sha }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          if [ -z "${TAP_TOKEN:-}" ]; then
+            echo "TAP_REPO_TOKEN niet gezet — sla tap update over."
+            exit 0
+          fi
+          TAP_REPO="${TAP_REPO_OVERRIDE:-${OWNER}/homebrew-tap}"
+          echo "→ Updating cask in $TAP_REPO"
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/${TAP_REPO}.git" tap
+          mkdir -p tap/Casks
+          cat > tap/Casks/warpconfigurator.rb <<RUBY
+          cask "warpconfigurator" do
+            version "${VERSION}"
+            sha256 "${SHA}"
+
+            url "https://github.com/${REPO}/releases/download/v#{version}/WarpConfigurator-#{version}.zip"
+            name "Cloudflare WARP Configurator"
+            desc "Beheer Cloudflare WARP-profielen op macOS"
+            homepage "https://github.com/${REPO}"
+
+            depends_on macos: ">= :sonoma"
+
+            app "WarpConfigurator.app"
+
+            zap trash: [
+              "~/.config/warpconf",
+              "~/Library/Preferences/nl.innovative.warpconfigurator.plist",
+            ]
+          end
+          RUBY
+          cd tap
+          git add Casks/warpconfigurator.rb
+          if git diff --cached --quiet; then
+            echo "Geen wijzigingen in cask."
+          else
+            git commit -m "warpconfigurator ${VERSION}"
+            git push
+          fi
