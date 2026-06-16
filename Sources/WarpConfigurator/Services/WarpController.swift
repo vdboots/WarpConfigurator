@@ -6,7 +6,8 @@ enum WarpControllerError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .adminFailed(let code, let msg): return "WARP herstart faalde (\(code)): \(msg)"
+        case .adminFailed(let code, let msg):
+            return String(localized: "WARP restart failed (\(Int(code))): \(msg)", bundle: .module)
         }
     }
 }

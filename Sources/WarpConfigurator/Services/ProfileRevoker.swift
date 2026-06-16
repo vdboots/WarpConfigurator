@@ -5,7 +5,8 @@ enum ProfileRevokerError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .failed(let code, let msg): return "profiles remove faalde (\(code)): \(msg)"
+        case .failed(let code, let msg):
+            return String(localized: "profiles remove failed (\(Int(code))): \(msg)", bundle: .module)
         }
     }
 }

@@ -1,0 +1,62 @@
+/* App */
+"Cloudflare WARP Configurator" = "Cloudflare WARP Configurator";
+"Edit the organisations and click install — the rest happens automatically." = "Bewerk de organisaties en klik installeren — de rest gaat vanzelf.";
+
+/* Detection badge */
+"Status unknown" = "Status onbekend";
+"Profile installed" = "Profiel geïnstalleerd";
+"Installed · %lld orgs" = "Geïnstalleerd · %lld orgs";
+"Not installed" = "Niet geïnstalleerd";
+"Refresh detection" = "Detectie verversen";
+
+/* Import banner */
+"The installed profile contains a different set of organisations than shown above." = "Het geïnstalleerde profiel bevat een andere set organisaties dan hierboven.";
+"Import installed" = "Importeer geïnstalleerd";
+
+/* Organisations */
+"Organisations" = "Organisaties";
+"Name" = "Naam";
+"Team prefix (organization)" = "Team-prefix (organization)";
+"No organisations yet. Click + to add one." = "Nog geen organisaties. Klik op + om er één toe te voegen.";
+"Add organisation" = "Organisatie toevoegen";
+"%lld total" = "%lld totaal";
+"Remove this organisation" = "Verwijder deze organisatie";
+
+/* Primary actions */
+"Install & restart WARP" = "Installeer & herstart WARP";
+"Replace & restart WARP" = "Vervang & herstart WARP";
+
+/* Activation sheet */
+"Waiting for activation" = "Wachten op activatie";
+"Double-click 'Cloudflare WARP' in System Settings → Profiles, click **Install** and enter your password. We'll continue automatically once the profile is active." = "Dubbelklik op 'Cloudflare WARP' in System Settings → Profielen, klik **Install** en voer je wachtwoord in. We gaan automatisch verder zodra het profiel actief is.";
+"Open Profiles" = "Open Profielen";
+"Restart anyway" = "Toch herstarten";
+"Skip detection and restart WARP now." = "Sla detectie over en herstart WARP nu meteen.";
+"Cancel" = "Annuleren";
+
+/* More menu */
+"More" = "Meer";
+"Remove current profile" = "Verwijder huidig profiel";
+"Open Profiles settings" = "Open Profielen-instellingen";
+"Open Cloudflare WARP" = "Open Cloudflare WARP";
+
+/* Status messages */
+"Preparing profile…" = "Profiel klaarzetten…";
+"Removing existing profile…" = "Bestaand profiel verwijderen…";
+"Opening profile in System Settings…" = "Profiel openen in System Settings…";
+"Waiting for activation in System Settings…" = "Wachten op activatie in System Settings…";
+"No activation detected after 10 minutes. Confirm manually in System Settings and click 'Restart anyway'." = "Geen activatie gedetecteerd na 10 minuten. Bevestig handmatig in System Settings en klik 'Toch herstarten'.";
+"Activation detected — restarting WARP…" = "Activatie gedetecteerd — WARP herstarten…";
+"Done — profile active, WARP restarted and opened." = "Klaar — profiel actief, WARP herstart en geopend.";
+"Done — WARP restarted and opened." = "Klaar — WARP herstart en geopend.";
+"Restarting Cloudflare WARP…" = "Cloudflare WARP herstarten…";
+"Cancelled. Profile may still be in 'Downloaded' in System Settings." = "Geannuleerd. Profiel staat eventueel nog in 'Downloaded' in System Settings.";
+"Removing current WARP profile…" = "Huidig WARP-profiel verwijderen…";
+"Profile removed." = "Profiel verwijderd.";
+
+/* Errors */
+"Profile has no GUID assigned." = "Profiel heeft geen GUID toegekend.";
+"Add at least one organisation." = "Voeg minimaal één organisatie toe.";
+"Fill in both the name and the prefix for each organisation." = "Vul voor elke organisatie zowel de naam als de prefix in.";
+"profiles remove failed (%d): %@" = "profiles remove faalde (%d): %@";
+"WARP restart failed (%d): %@" = "WARP herstart faalde (%d): %@";

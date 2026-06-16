@@ -7,9 +7,9 @@ enum ProfileBuilderError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .missingGuid: return "Profiel heeft geen GUID toegekend."
-        case .emptyConfigs: return "Voeg minimaal één organisatie toe."
-        case .incompleteOrg: return "Vul voor elke organisatie zowel de naam als de prefix in."
+        case .missingGuid: return String(localized: "Profile has no GUID assigned.", bundle: .module)
+        case .emptyConfigs: return String(localized: "Add at least one organisation.", bundle: .module)
+        case .incompleteOrg: return String(localized: "Fill in both the name and the prefix for each organisation.", bundle: .module)
         }
     }
 }

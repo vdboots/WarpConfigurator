@@ -1,5 +1,9 @@
 import SwiftUI
 
+private func L(_ key: String.LocalizationValue) -> String {
+    String(localized: key, bundle: .module)
+}
+
 struct ContentView: View {
     @EnvironmentObject var store: ConfigStore
     @State private var status: String = ""
@@ -17,11 +21,13 @@ struct ContentView: View {
             orgsSection
             actions
             Spacer(minLength: 0)
-            footer
         }
-        .padding(20)
-        .frame(minWidth: 720, minHeight: 540)
+        .padding(.horizontal, 20)
+        .padding(.top, 38)
+        .padding(.bottom, 20)
+        .frame(minWidth: 720, minHeight: 560)
         .safeAreaInset(edge: .bottom) { statusBar }
+        .toolbar { ToolbarItem(placement: .primaryAction) { moreMenu } }
         .task { refreshDetection() }
         .sheet(isPresented: $awaitingActivation) { activationSheet }
     }
@@ -46,8 +52,8 @@ struct ContentView: View {
     private var header: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Cloudflare WARP Configurator").font(.title).bold()
-                Text("Bewerk de organisaties en klik installeren — de rest gaat vanzelf.")
+                Text("Cloudflare WARP Configurator", bundle: .module).font(.title).bold()
+                Text("Edit the organisations and click install — the rest happens automatically.", bundle: .module)
                     .foregroundStyle(.secondary)
                     .font(.callout)
             }
@@ -62,23 +68,23 @@ struct ContentView: View {
             switch installStatus {
             case .unknown:
                 Image(systemName: "questionmark.circle.fill").foregroundStyle(.secondary)
-                Text("Status onbekend").foregroundStyle(.secondary)
+                Text("Status unknown", bundle: .module).foregroundStyle(.secondary)
             case .installed(let configs):
                 Image(systemName: "checkmark.seal.fill").foregroundStyle(.green)
                 if configs.isEmpty {
-                    Text("Profiel geïnstalleerd")
+                    Text("Profile installed", bundle: .module)
                 } else {
-                    Text("Geïnstalleerd · \(configs.count) org\(configs.count == 1 ? "" : "s")")
+                    Text("Installed · \(configs.count) orgs", bundle: .module)
                 }
             case .notInstalled:
                 Image(systemName: "xmark.seal").foregroundStyle(.secondary)
-                Text("Niet geïnstalleerd").foregroundStyle(.secondary)
+                Text("Not installed", bundle: .module).foregroundStyle(.secondary)
             }
             Button {
                 refreshDetection()
             } label: { Image(systemName: "arrow.clockwise") }
             .buttonStyle(.plain)
-            .help("Detectie verversen")
+            .help(Text("Refresh detection", bundle: .module))
         }
         .font(.callout)
         .padding(.horizontal, 10)
@@ -91,11 +97,13 @@ struct ContentView: View {
     private var importBanner: some View {
         HStack(spacing: 10) {
             Image(systemName: "info.circle.fill").foregroundStyle(.tint)
-            Text("Het geïnstalleerde profiel bevat een andere set organisaties dan hierboven.")
+            Text("The installed profile contains a different set of organisations than shown above.", bundle: .module)
                 .font(.callout)
             Spacer()
-            Button("Importeer geïnstalleerd") {
+            Button {
                 store.importDetected()
+            } label: {
+                Text("Import installed", bundle: .module)
             }
             .buttonStyle(.bordered)
         }
@@ -113,7 +121,7 @@ struct ContentView: View {
                 columnHeaders
                 Divider()
                 if store.profile.configs.isEmpty {
-                    Text("Nog geen organisaties. Klik op + om er één toe te voegen.")
+                    Text("No organisations yet. Click + to add one.", bundle: .module)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 12)
@@ -127,30 +135,34 @@ struct ContentView: View {
                     Button {
                         store.addOrg()
                     } label: {
-                        Label("Organisatie toevoegen", systemImage: "plus.circle.fill")
+                        Label {
+                            Text("Add organisation", bundle: .module)
+                        } icon: {
+                            Image(systemName: "plus.circle.fill")
+                        }
                     }
                     .buttonStyle(.plain)
                     .foregroundStyle(.tint)
                     Spacer()
-                    Text("\(store.profile.configs.count) totaal")
+                    Text("\(store.profile.configs.count) total", bundle: .module)
                         .foregroundStyle(.secondary)
                         .font(.callout)
                 }
             }
             .padding(8)
         } label: {
-            Text("Organisaties").font(.headline)
+            Text("Organisations", bundle: .module).font(.headline)
         }
         .disabled(working || awaitingActivation)
     }
 
     private var columnHeaders: some View {
         HStack {
-            Text("Naam")
+            Text("Name", bundle: .module)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            Text("Team-prefix (organization)")
+            Text("Team prefix (organization)", bundle: .module)
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -173,7 +185,7 @@ struct ContentView: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(.red)
-            .help("Verwijder deze organisatie")
+            .help(Text("Remove this organisation", bundle: .module))
         }
     }
 
@@ -184,7 +196,11 @@ struct ContentView: View {
             Button {
                 prepareInstall()
             } label: {
-                Label(primaryButtonTitle, systemImage: "square.and.arrow.down.on.square")
+                Label {
+                    primaryButtonLabel
+                } icon: {
+                    Image(systemName: "square.and.arrow.down.on.square")
+                }
             }
             .buttonStyle(.borderedProminent)
             .keyboardShortcut("i", modifiers: .command)
@@ -192,10 +208,13 @@ struct ContentView: View {
         }
     }
 
-    private var primaryButtonTitle: String {
+    @ViewBuilder
+    private var primaryButtonLabel: some View {
         switch installStatus {
-        case .installed: return "Vervang & herstart WARP"
-        case .notInstalled, .unknown: return "Installeer & herstart WARP"
+        case .installed:
+            Text("Replace & restart WARP", bundle: .module)
+        case .notInstalled, .unknown:
+            Text("Install & restart WARP", bundle: .module)
         }
     }
 
@@ -212,37 +231,50 @@ struct ContentView: View {
             }
 
             VStack(spacing: 6) {
-                Text("Wachten op activatie")
+                Text("Waiting for activation", bundle: .module)
                     .font(.title2).bold()
-                Text(activationHint.isEmpty
-                     ? "Dubbelklik op 'Cloudflare WARP' in System Settings → Profielen, klik **Install** en voer je wachtwoord in. We gaan automatisch verder zodra het profiel actief is."
-                     : activationHint)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if activationHint.isEmpty {
+                    Text("Double-click 'Cloudflare WARP' in System Settings → Profiles, click **Install** and enter your password. We'll continue automatically once the profile is active.", bundle: .module)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text(activationHint)
+                        .multilineTextAlignment(.center)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             HStack(spacing: 10) {
                 Button {
                     ProfileInstaller.openProfilesPane()
                 } label: {
-                    Label("Open Profielen", systemImage: "gearshape.2")
+                    Label {
+                        Text("Open Profiles", bundle: .module)
+                    } icon: {
+                        Image(systemName: "gearshape.2")
+                    }
                 }
                 .controlSize(.large)
 
                 Button {
                     forceComplete()
                 } label: {
-                    Label("Toch herstarten", systemImage: "checkmark.circle")
+                    Label {
+                        Text("Restart anyway", bundle: .module)
+                    } icon: {
+                        Image(systemName: "checkmark.circle")
+                    }
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                .help("Sla detectie over en herstart WARP nu meteen.")
+                .help(Text("Skip detection and restart WARP now.", bundle: .module))
 
                 Button(role: .cancel) {
                     cancelAwaiting()
                 } label: {
-                    Text("Annuleren")
+                    Text("Cancel", bundle: .module)
                 }
                 .controlSize(.large)
             }
@@ -251,31 +283,34 @@ struct ContentView: View {
         .frame(width: 520)
     }
 
-    // MARK: - Footer
+    // MARK: - More menu (toolbar)
 
-    private var footer: some View {
-        HStack {
-            Spacer()
-            Menu {
-                Button(role: .destructive) {
-                    revoke()
-                } label: { Label("Verwijder huidig profiel", systemImage: "trash") }
-                Button {
-                    refreshDetection()
-                } label: { Label("Detectie verversen", systemImage: "arrow.clockwise") }
-                Button {
-                    ProfileInstaller.openProfilesPane()
-                } label: { Label("Open Profielen-instellingen", systemImage: "gearshape.2") }
-                Button {
-                    WarpController.launchWarpApp()
-                } label: { Label("Open Cloudflare WARP", systemImage: "arrow.up.right.square") }
+    private var moreMenu: some View {
+        Menu {
+            Button(role: .destructive) {
+                revoke()
             } label: {
-                Label("Meer", systemImage: "ellipsis.circle")
+                Label { Text("Remove current profile", bundle: .module) } icon: { Image(systemName: "trash") }
             }
-            .menuStyle(.borderlessButton)
-            .fixedSize()
-            .disabled(working || awaitingActivation)
+            Button {
+                refreshDetection()
+            } label: {
+                Label { Text("Refresh detection", bundle: .module) } icon: { Image(systemName: "arrow.clockwise") }
+            }
+            Button {
+                ProfileInstaller.openProfilesPane()
+            } label: {
+                Label { Text("Open Profiles settings", bundle: .module) } icon: { Image(systemName: "gearshape.2") }
+            }
+            Button {
+                WarpController.launchWarpApp()
+            } label: {
+                Label { Text("Open Cloudflare WARP", bundle: .module) } icon: { Image(systemName: "arrow.up.right.square") }
+            }
+        } label: {
+            Label { Text("More", bundle: .module) } icon: { Image(systemName: "ellipsis.circle") }
         }
+        .disabled(working || awaitingActivation)
     }
 
     // MARK: - Status bar
@@ -298,7 +333,7 @@ struct ContentView: View {
     // MARK: - Install flow — step 1: prepare + open + start polling
 
     private func prepareInstall() {
-        beginWork("Profiel klaarzetten…")
+        beginWork(L("Preparing profile…"))
         let snapshot = store.profile
         let initialMtime = ProfileDetector.managedFileModifiedAt()
         let wasInstalled: Bool = {
@@ -309,10 +344,10 @@ struct ContentView: View {
         Task.detached(priority: .userInitiated) {
             do {
                 if wasInstalled {
-                    await setStatus("Bestaand profiel verwijderen…")
+                    await setStatus(L("Removing existing profile…"))
                     try? ProfileRevoker.revoke()
                 }
-                await setStatus("Profiel openen in System Settings…")
+                await setStatus(L("Opening profile in System Settings…"))
                 let data = try ProfileBuilder().build(snapshot)
                 _ = try ProfileInstaller.install(data: data, displayName: "Cloudflare WARP")
                 try? await Task.sleep(nanoseconds: 600_000_000)
@@ -330,7 +365,7 @@ struct ContentView: View {
         isError = false
         awaitingActivation = true
         activationHint = ""
-        status = "Wachten op activatie in System Settings…"
+        status = L("Waiting for activation in System Settings…")
 
         pollTask = Task.detached(priority: .utility) {
             let confirmed = await waitForInstall(initial: initialMtime, timeout: 600)
@@ -360,11 +395,11 @@ struct ContentView: View {
     @MainActor
     private func proceedAfterActivation() {
         awaitingActivation = false
-        beginWork("Activatie gedetecteerd — WARP herstarten…")
+        beginWork(L("Activation detected — restarting WARP…"))
         Task.detached(priority: .userInitiated) {
             do {
                 try WarpController.restartAndLaunch()
-                await finishSuccess("Klaar — profiel actief, WARP herstart en geopend.")
+                await finishSuccess(L("Done — profile active, WARP restarted and opened."))
             } catch {
                 await finish(error: error.localizedDescription)
             }
@@ -373,7 +408,7 @@ struct ContentView: View {
 
     @MainActor
     private func timeoutAwaiting() {
-        activationHint = "Geen activatie gedetecteerd na 10 minuten. Bevestig handmatig in System Settings en klik 'Toch herstarten'."
+        activationHint = L("No activation detected after 10 minutes. Confirm manually in System Settings and click 'Restart anyway'.")
     }
 
     // MARK: - Install flow — step 2 (manual override / fallback)
@@ -382,11 +417,11 @@ struct ContentView: View {
         pollTask?.cancel()
         pollTask = nil
         awaitingActivation = false
-        beginWork("Cloudflare WARP herstarten…")
+        beginWork(L("Restarting Cloudflare WARP…"))
         Task.detached(priority: .userInitiated) {
             do {
                 try WarpController.restartAndLaunch()
-                await finishSuccess("Klaar — WARP herstart en geopend.")
+                await finishSuccess(L("Done — WARP restarted and opened."))
             } catch {
                 await finish(error: error.localizedDescription)
             }
@@ -398,14 +433,14 @@ struct ContentView: View {
         pollTask = nil
         awaitingActivation = false
         working = false
-        status = "Geannuleerd. Profiel staat eventueel nog in 'Downloaded' in System Settings."
+        status = L("Cancelled. Profile may still be in 'Downloaded' in System Settings.")
         isError = false
     }
 
     // MARK: - Revoke
 
     private func revoke() {
-        beginWork("Huidig WARP-profiel verwijderen…")
+        beginWork(L("Removing current WARP profile…"))
         Task.detached(priority: .userInitiated) {
             do {
                 try ProfileRevoker.revoke()
@@ -455,7 +490,7 @@ struct ContentView: View {
 
     @MainActor
     private func finishRevoke() {
-        status = "Profiel verwijderd."
+        status = L("Profile removed.")
         isError = false
         working = false
         awaitingActivation = false
@@ -468,8 +503,6 @@ struct ContentView: View {
         status = message
         isError = true
         working = false
-        awaitingActivation = false
-        pollTask = nil
         refreshDetection()
     }
 }

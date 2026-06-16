@@ -1,0 +1,50 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB068"/>
+      <stop offset="45%" stop-color="#FF7A2A"/>
+      <stop offset="100%" stop-color="#B82400"/>
+    </linearGradient>
+    <radialGradient id="depth" cx="50%" cy="50%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.22"/>
+    </radialGradient>
+    <linearGradient id="topShine" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#FFF6D8" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#FFF6D8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <rect width="1024" height="1024" fill="url(#depth)"/>
+  <rect width="1024" height="1024" fill="url(#topShine)"/>
+
+  <g transform="translate(512, 512)" fill="none" stroke="#FFFFFF" stroke-linecap="round">
+    <circle r="420" stroke-opacity="0.10" stroke-width="6"/>
+    <circle r="335" stroke-opacity="0.18" stroke-width="7"/>
+    <circle r="258" stroke-opacity="0.30" stroke-width="8"/>
+    <circle r="188" stroke-opacity="0.46" stroke-width="9"/>
+    <circle r="125" stroke-opacity="0.66" stroke-width="10"/>
+    <circle r="72" stroke-opacity="0.88" stroke-width="11"/>
+  </g>
+
+  <g transform="translate(512, 512)" stroke="#FFFFFF" stroke-opacity="0.7" stroke-width="9" stroke-linecap="round">
+    <line x1="0" y1="-472" x2="0" y2="-395"/>
+    <line x1="334" y1="-334" x2="279" y2="-279"/>
+    <line x1="472" y1="0" x2="395" y2="0"/>
+    <line x1="334" y1="334" x2="279" y2="279"/>
+    <line x1="0" y1="472" x2="0" y2="395"/>
+    <line x1="-334" y1="334" x2="-279" y2="279"/>
+    <line x1="-472" y1="0" x2="-395" y2="0"/>
+    <line x1="-334" y1="-334" x2="-279" y2="-279"/>
+  </g>
+
+  <circle cx="512" cy="512" r="58" fill="url(#centerGlow)"/>
+  <circle cx="512" cy="512" r="18" fill="#FFFFFF"/>
+</svg>

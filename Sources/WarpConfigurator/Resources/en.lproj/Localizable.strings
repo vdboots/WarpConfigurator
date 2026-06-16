@@ -1,0 +1,3 @@
+/* English values mirror the keys; this file exists so future English-only tweaks land here. */
+"Cloudflare WARP Configurator" = "Cloudflare WARP Configurator";
+"Edit the organisations and click install — the rest happens automatically." = "Edit the organisations and click install — the rest happens automatically.";
