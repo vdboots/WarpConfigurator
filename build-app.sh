@@ -28,13 +28,17 @@ ENTITLEMENTS="$ROOT/entitlements.plist"
 echo "→ Release build (archs=$ARCHS)…"
 if [ "$ARCHS" = "universal" ]; then
   swift build -c release --arch arm64 --arch x86_64
+  BIN_DIR="$ROOT/.build/apple/Products/Release"
 else
   swift build -c release
+  BIN_DIR="$(swift build -c release --show-bin-path)"
 fi
 
-BIN="$(swift build -c release --show-bin-path)/$APP_NAME"
+BIN="$BIN_DIR/$APP_NAME"
 if [ ! -x "$BIN" ]; then
   echo "✗ Binary niet gevonden op $BIN"
+  echo "  Inhoud van $BIN_DIR:"
+  ls -la "$BIN_DIR" 2>&1 | sed 's/^/    /'
   exit 1
 fi
 
@@ -45,7 +49,7 @@ mkdir -p "$APP_DIR/Contents/MacOS" "$APP_DIR/Contents/Resources"
 cp "$BIN" "$APP_DIR/Contents/MacOS/$APP_NAME"
 chmod +x "$APP_DIR/Contents/MacOS/$APP_NAME"
 
-RES_BUNDLE="$(swift build -c release --show-bin-path)/${APP_NAME}_${APP_NAME}.bundle"
+RES_BUNDLE="$BIN_DIR/${APP_NAME}_${APP_NAME}.bundle"
 if [ -d "$RES_BUNDLE" ]; then
   cp -R "$RES_BUNDLE" "$APP_DIR/Contents/Resources/"
 fi
